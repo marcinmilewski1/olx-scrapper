@@ -1,71 +1,76 @@
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
+
 const {WebClient} = require('@slack/client');
 const token = process.env.SLACK_TOKEN;
 const conversationId = process.env.SLACK_CONVERSATION_ID;
 const web = new WebClient(token);
 
-const olxUrl = 'https://www.olx.pl/nieruchomosci/mieszkania/sprzedaz/bialystok/?search%5Bfilter_float_price%3Ato%5D=200000&search%5Bfilter_float_m%3Afrom%5D=35&search%5Bfilter_enum_rooms%5D%5B0%5D=two';
-const interval = 10000;
+const olxUrl = process.env.OLX_URL;
+const interval = process.env.SCRAP_INTERVAL || 10000;
 
-const previousIds = new Set();
 
-async function readPage() {
-    const response = await fetch(olxUrl);
-    const text = await response.text();
-    const $ = cheerio.load(text);
+var olxScrapper = (function () {
+    const previousIds = new Set();
 
-    let firstOffer;
-    try {
-        firstOffer = readOfferData($, 0);
-
-        if (!firstOffer.id) {
-            throw Error(`Id is null ${firstOffer}`)
-        }
-    } catch (e) {
-        console.error('Parsing template failed!', e);
-        return
-    }
-
-    /* Program just started */
-    if (previousIds.length === 0) {
-        console.log(`${getTime()} Program Start!`);
-        previousIds.add(firstOffer.id);
-        return;
-    }
-
-    /* No new offer */
-    if (previousIds.has(firstOffer.id)) {
-        console.log(`${getTime()} [${firstOffer.name}#${firstOffer.id}] No new offer...`);
-        return;
-    }
-
-    console.log(`${getTime()} New Offer!!! `, firstOffer);
-    sendNotification(`${firstOffer.name} ${firstOffer.price}`, firstOffer.location, firstOffer.url);
-    previousIds.add(firstOffer.id)
-}
-
-function readOfferData($, offerIndex) {
-    const index = offerIndex + 3;
     return {
-        name:
-            $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(1) > td.title-cell > div > h3 > a > strong`)
-                .text(),
-        price:
-            $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(1) > td.wwnormal.tright.td-price > div > p > strong`)
-                .text(),
-        location:
-            $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(2) > td.bottom-cell > div > p > small:nth-child(1) > span`)
-                .text()
-                .trim(),
-        url:
-            $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(1) > td.title-cell > div > h3 > a`)
-                .attr('href'),
-        id:
-            $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table`)
-                .attr('data-id')
+        readOfferData: function ($, offerIndex) {
+            const index = offerIndex + 3;
+            return {
+                name:
+                    $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(1) > td.title-cell > div > h3 > a > strong`)
+                        .text(),
+                price:
+                    $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(1) > td.wwnormal.tright.td-price > div > p > strong`)
+                        .text(),
+                location:
+                    $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(2) > td.bottom-cell > div > p > small:nth-child(1) > span`)
+                        .text()
+                        .trim(),
+                url:
+                    $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table > tbody > tr:nth-child(1) > td.title-cell > div > h3 > a`)
+                        .attr('href'),
+                id:
+                    $(`#offers_table > tbody > tr:nth-child(${index}) > td > div > table`)
+                        .attr('data-id')
+            };
+        },
+        readPage: async function (url) {
+            const response = await fetch(url);
+            const text = await response.text();
+            const $ = cheerio.load(text);
+
+            let firstOffer;
+            try {
+                firstOffer = this.readOfferData($, 0);
+                console.log(firstOffer);
+                if (!firstOffer.id) {
+                    throw Error(`Id is null ${firstOffer}`)
+                }
+            } catch (e) {
+                console.error('Parsing template failed!', e);
+                return
+            }
+
+            /* Program just started */
+            if (previousIds.length === 0) {
+                console.log(`${getTime()} Program Start!`);
+                previousIds.add(firstOffer.id);
+                return;
+            }
+
+            /* No new offer */
+            if (previousIds.has(firstOffer.id)) {
+                console.log(`${getTime()} [${firstOffer.name}#${firstOffer.id}] No new offer...`);
+                return;
+            }
+
+            console.log(`${getTime()} New Offer!!! `, firstOffer);
+            sendNotification(`${firstOffer.name} ${firstOffer.price}`, firstOffer.location, firstOffer.url);
+            previousIds.add(firstOffer.id)
+        }
     };
-}
+})();
 
 function sendNotification(title, message, url) {
     console.log(`Sending a notification: {title: '${title}', message: '${message}}'`);
@@ -99,9 +104,9 @@ function getTime() {
 }
 
 setTimeout(async () => {
-    await readPage()
+    await olxScrapper.readPage(olxUrl)
 });
 
 setInterval(async () => {
-    await readPage();
+    await olxScrapper.readPage(olxUrl);
 }, interval);
