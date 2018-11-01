@@ -2,9 +2,13 @@ const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 const opn = require('opn');
 const notifier = require('node-notifier');
+const {WebClient} = require('@slack/client');
+const token = process.env.SLACK_TOKEN;
+const conversationId = process.env.SLACK_CONVERSATION_ID;
+const web = new WebClient(token);
 
-const olxUrl = 'https://www.olx.pl/nieruchomosci/mieszkania/wynajem/bialystok/?search[filter_float_price:to]=1400&search[filter_enum_rooms][0]=one&search[filter_enum_rooms][1]=two';
-const interval = 5000;
+const olxUrl = 'https://www.olx.pl/nieruchomosci/mieszkania/sprzedaz/bialystok/?search%5Bfilter_float_price%3Ato%5D=200000&search%5Bfilter_float_m%3Afrom%5D=35&search%5Bfilter_enum_rooms%5D%5B0%5D=two';
+const interval = 10000;
 
 const previousIds = new Set();
 
@@ -73,9 +77,12 @@ function sendNotification(title, message, url) {
         sound: true,
         wait: true,
         type: 'info',
+        url: url
     };
     notifier.notify(options, (error, response) => {
         console.log(response);
+        // opn(url);
+        sendToSlack(title, message, url)
     });
 }
 
@@ -83,6 +90,27 @@ notifier.on('click', function (notifierObject, options) {
     // Triggers if `wait: true` and user clicks notification
     opn(url);
 });
+
+function sendToSlack(title, message, url) {
+    console.log(`Sending a slack message: {title: '${title}', message: '${message}}'`);
+    web.chat.postMessage(
+        {
+            channel: conversationId,
+            attachments: [
+                {
+                    "color": "#2e51a6",
+                    "title": title,
+                    "title_link": url,
+                    "text": message,
+                }
+            ]
+        })
+        .then((res) => {
+            // `res` contains information about the posted message
+            console.log('Message sent: ', res.ts);
+        })
+        .catch(console.error);
+}
 
 
 function getTime() {

@@ -10,6 +10,7 @@
   "author": "Maciej Sawicki <maciej.sawicki@acaisoft.com> (https://acaisoft.com)",
   "license": "ISC",
   "dependencies": {
+    "@slack/client": "^4.8.0",
     "cheerio": "^1.0.0-rc.2",
     "node-fetch": "^2.2.0",
     "node-notifier": "^5.2.1",
