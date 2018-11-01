@@ -6,3 +6,6 @@ clean:
 
 run:
 	docker-compose up --build --remove-orphans
+
+build:
+	IMAGE=${IMAGE} ./scripts/generate_template.sh
