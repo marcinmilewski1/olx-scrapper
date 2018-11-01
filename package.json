@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start-prod": "node index.js",
     "start": "node $NODE_DEBUG_OPTION index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,8 +13,6 @@
   "dependencies": {
     "@slack/client": "^4.8.0",
     "cheerio": "^1.0.0-rc.2",
-    "node-fetch": "^2.2.0",
-    "node-notifier": "^5.2.1",
-    "opn": "^5.3.0"
+    "node-fetch": "^2.2.0"
   }
 }

@@ -1,7 +1,5 @@
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
-const opn = require('opn');
-const notifier = require('node-notifier');
 const {WebClient} = require('@slack/client');
 const token = process.env.SLACK_TOKEN;
 const conversationId = process.env.SLACK_CONVERSATION_ID;
@@ -71,25 +69,8 @@ function readOfferData($, offerIndex) {
 
 function sendNotification(title, message, url) {
     console.log(`Sending a notification: {title: '${title}', message: '${message}}'`);
-    const options = {
-        title,
-        message,
-        sound: true,
-        wait: true,
-        type: 'info',
-        url: url
-    };
-    notifier.notify(options, (error, response) => {
-        console.log(response);
-        // opn(url);
-        sendToSlack(title, message, url)
-    });
+    sendToSlack(title, message, url)
 }
-
-notifier.on('click', function (notifierObject, options) {
-    // Triggers if `wait: true` and user clicks notification
-    opn(url);
-});
 
 function sendToSlack(title, message, url) {
     console.log(`Sending a slack message: {title: '${title}', message: '${message}}'`);
