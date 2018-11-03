@@ -5,11 +5,33 @@ const olxScrapper = require('./app/scrappers').olxScrapper;
 const otoDomScapper = require('./app/scrappers').otoDomScrapper;
 
 setTimeout(async () => {
-    // await olxScrapper.readPage(olxUrl)
-    await otoDomScapper.readPage(otoDomUrl)
+    if (olxUrl) {
+        await olxScrapper.readPage(olxUrl);
+    }
+    else {
+        console.log("No olx url");
+    }
+
+    if (otoDomUrl) {
+        await otoDomScapper.readPage(otoDomUrl)
+    }
+    else {
+        console.log("No otodom url");
+    }
 });
 
 setInterval(async () => {
-    // await olxScrapper.readPage(olxUrl);
-    await otoDomScapper.readPage(otoDomUrl);
+    if (olxUrl) {
+        await olxScrapper.readPage(olxUrl);
+    }
+    else {
+        console.log("No olx url");
+    }
+
+    if (otoDomUrl) {
+        await otoDomScapper.readPage(otoDomUrl)
+    }
+    else {
+        console.log("No otodom url");
+    }
 }, interval);
