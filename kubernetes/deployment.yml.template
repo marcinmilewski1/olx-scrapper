@@ -31,6 +31,6 @@ spec:
               key: SLACK_CONVERSATION_ID
         - name: OLX_URL
           valueFrom:
-            secretKeyRef:
-              name: mysecret
+            configMapKeyRef:
+              name: appconfig
               key: OLX_URL

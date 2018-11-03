@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: appconfig
+  namespace: scrapper
+data:
+  OLX_URL: "https://www.olx.pl/nieruchomosci/mieszkania/sprzedaz/bialystok/?search%5Bfilter_float_price%3Ato%5D=200000&search%5Bfilter_float_m%3Afrom%5D=35&search%5Bfilter_enum_rooms%5D%5B0%5D=two"
