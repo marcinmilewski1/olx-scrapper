@@ -18,3 +18,19 @@ spec:
       containers:
       - name: scrapper
         image: {{IMAGE}}
+        env:
+        - name: SLACK_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: mysecret
+              key: SLACK_TOKEN
+        - name: SLACK_CONVERSATION_ID
+          valueFrom:
+            secretKeyRef:
+              name: mysecret
+              key: SLACK_CONVERSATION_ID
+        - name: OLX_URL
+          valueFrom:
+            secretKeyRef:
+              name: mysecret
+              key: OLX_URL
